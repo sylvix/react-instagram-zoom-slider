@@ -1,18 +1,36 @@
-import React from 'react'
+import React, { cloneElement } from 'react'
 import PropTypes from 'prop-types'
 import { animated, interpolate } from 'react-spring'
 import { useZoom } from '../../hooks'
 import { defaultProps } from '../../constants'
-import { Slide as StyledSlide } from './Slide.css'
+import { Slide as StyledSlide, SlideInner } from './Slide.css'
 
 const AnimatedSlide = animated(StyledSlide)
 
-export default function Slide({ children, onScale, minScale, maxScale }) {
+export default function Slide({ children, onScale, minScale, maxScale, width, onClick }) {
   const [element, scale, translateX, translateY, middleTouchOnElement] = useZoom({
     minScale,
     maxScale,
     onScale,
   })
+
+  const modifyChildClickHandler = child => {
+    let newClickHandler = null;
+
+    if (child.props.onClick) {
+      newClickHandler = e => {
+        onClick(child.props.onClick, e);
+      };
+    }
+
+    if (!newClickHandler) {
+      return child;
+    }
+
+    return cloneElement(child, {
+      onClick: newClickHandler
+    });
+  };
 
   return (
     <AnimatedSlide
@@ -23,9 +41,12 @@ export default function Slide({ children, onScale, minScale, maxScale }) {
           (sc, x, y) => `translate3d(${x}px, ${y}px, 0) scale3d(${sc}, ${sc}, 1)`
         ),
         transformOrigin: middleTouchOnElement.interpolate((x, y) => `${x}px ${y}px 0`),
+        width,
       }}
     >
-      {children}
+      <SlideInner>
+        {children.length ? children.map(modifyChildClickHandler) : modifyChildClickHandler(children)}
+      </SlideInner>
     </AnimatedSlide>
   )
 }

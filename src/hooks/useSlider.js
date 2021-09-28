@@ -1,20 +1,30 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useSpring } from 'react-spring'
 import { useDrag } from 'react-use-gesture'
 import { clamp } from '../helpers'
 
-export default function useSlider({ initialSlide, slides }) {
-  const [{ x, scale }, set] = useSpring(() => ({
-    x: typeof window !== 'undefined' ? -window.innerWidth * initialSlide : 0,
-    scale: 1,
-    config: { tension: 270, clamp: true },
-  }))
-
+export default function useSlider({ initialSlide, slides, width = 400 }) {
   const index = useRef(initialSlide)
+
+  const [{ x, scale }, set] = useSpring(() => {
+    return ({
+      x: -width,
+      scale: 1,
+      config: { tension: 270, clamp: true },
+    })
+  })
+
+  useEffect(() => {
+    set({
+      x: -index.current * width,
+      immediate: true,
+    });
+  }, [set]);
 
   // Slide numbers (for display purposes only)
   const [currentSlide, updateSlide] = useState(initialSlide)
   const [zooming, setZooming] = useState(false)
+  const isDragging = useRef(false)
 
   const onScale = useCallback(
     slideProps => {
@@ -37,22 +47,30 @@ export default function useSlider({ initialSlide, slides }) {
       swipe: [swipeX],
       cancel,
       touches,
+      first,
+      last,
     }) => {
       // We don't want to interrupt the pinch-to-zoom gesture
       if (touches > 1) {
         cancel()
       }
 
+      if (first) {
+        isDragging.current = true;
+      } else if (last) {
+        requestAnimationFrame(() => isDragging.current = false);
+      }
+
       // We have swiped past halfway
-      if (!down && distance > window.innerWidth / 2) {
+      if (!down && distance > width / 2) {
         // Move to the next slide
         const slideDir = xDir > 0 ? -1 : 1
         index.current = clamp(index.current + slideDir, 0, slides.length - 1)
 
         set({
-          x: -index.current * window.innerWidth + (down ? xMovement : 0),
+          x: -index.current * width + (down ? xMovement : 0),
           immediate: false,
-        })
+        });
       } else if (swipeX !== 0) {
         // We have detected a swipe - update the new index
         index.current = clamp(index.current - swipeX, 0, slides.length - 1)
@@ -60,7 +78,7 @@ export default function useSlider({ initialSlide, slides }) {
 
       // Animate the transition
       set({
-        x: -index.current * window.innerWidth + (down ? xMovement : 0),
+        x: -index.current * width + (down ? xMovement : 0),
         immediate: down,
       })
 
@@ -80,5 +98,5 @@ export default function useSlider({ initialSlide, slides }) {
     }
   )
 
-  return [zooming, scale, currentSlide, bind, x, onScale]
+  return [zooming, scale, currentSlide, bind, x, onScale, isDragging]
 }

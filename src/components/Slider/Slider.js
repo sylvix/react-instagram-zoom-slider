@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import PropTypes from 'prop-types'
 import { animated } from 'react-spring'
 import { defaultProps } from '../../constants'
@@ -15,18 +15,44 @@ import {
 const AnimatedOverlay = animated(StyledOverlay)
 const AnimatedSlider = animated(StyledSlider)
 
-export default function Slider({
+const Slider = React.forwardRef(({
   initialSlide,
   slides,
   slideOverlay,
   slideIndicatorTimeout,
   activeDotColor,
   dotColor,
-}) {
-  const [zooming, scale, currentSlide, bind, x, onScale] = useSlider({
+  parentEl,
+  width,
+}, ref) => {
+  const [parentWidth, setParentWidth] = useState(0);
+
+  const [zooming, scale, currentSlide, bind, x, onScale, isDragging] = useSlider({
     initialSlide,
     slides,
-  })
+    width: parentWidth
+  });
+
+  useEffect(() => {
+    if (parentEl && parentEl.current) {
+      setParentWidth(parentEl.current.clientWidth);
+    }
+
+    const onResize = () => {
+      const newWidth = parentEl.current.clientWidth;
+      if (newWidth !== parentWidth) {
+        setParentWidth(newWidth);
+      }
+    };
+
+    if (parentEl && parentEl.current) {
+      window.addEventListener('resize', onResize);
+    }
+
+    return () => {
+      window.removeEventListener('resize', onResize);
+    }
+  }, [parentEl]);
 
   return (
     <div>
@@ -59,7 +85,11 @@ export default function Slider({
       >
         {slides.map((slide, idx) => (
           // eslint-disable-next-line react/no-array-index-key
-          <Slide onScale={onScale} key={idx}>
+          <Slide onScale={onScale} key={idx} width={parentWidth} onClick={(originalOnClick, e) => {
+            if (!isDragging.current) {
+              originalOnClick(e);
+            }
+          }}>
             {slide}
           </Slide>
         ))}
@@ -76,7 +106,7 @@ export default function Slider({
       )}
     </div>
   )
-}
+});
 
 Slider.propTypes = {
   /** Index of the slide to be rendered by default */
@@ -106,3 +136,5 @@ Slider.defaultProps = {
   activeDotColor: defaultProps.activeDotColor,
   dotColor: defaultProps.dotColor,
 }
+
+export default Slider;

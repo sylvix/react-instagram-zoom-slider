@@ -21,8 +21,8 @@
     "test:watch": "jest --watch",
     "build": "rollup -c",
     "start": "rollup -c -w",
-    "prepare": "yarn run build",
-    "predeploy": "cd example && yarn install && rimraf dist && yarn run build",
+    "prepare": "npm run build",
+    "predeploy": "cd example && npm install && rimraf dist && npm run build",
     "deploy": "gh-pages -d example/dist",
     "semantic-release": "semantic-release"
   },

@@ -9,7 +9,7 @@ export const Slide = styled.div`
   justify-content: center;
 `
 export const SlideInner = styled.div`
-  flex-shrink: 0;
+  flex-shrink: 1;
   min-width: 100%;
   min-height: 100%;
 `

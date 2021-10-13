@@ -24,13 +24,15 @@ const Slider = React.forwardRef(({
   dotColor,
   parentEl,
   width,
+  onSlideUpdate,
 }, ref) => {
   const [parentWidth, setParentWidth] = useState(0);
 
   const [zooming, scale, currentSlide, bind, x, onScale, isDragging] = useSlider({
     initialSlide,
     slides,
-    width: parentWidth
+    width: parentWidth,
+    onSlideUpdate
   });
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { useSpring } from 'react-spring'
 import { useDrag } from 'react-use-gesture'
 import { clamp } from '../helpers'
 
-export default function useSlider({ initialSlide, slides, width = 400 }) {
+export default function useSlider({ initialSlide, slides, onSlideUpdate, width = 400 }) {
   const index = useRef(initialSlide)
 
   const [{ x, scale }, set] = useSpring(() => {
@@ -84,6 +84,7 @@ export default function useSlider({ initialSlide, slides, width = 400 }) {
 
       // Update the slide number for display purposes
       updateSlide(index.current)
+      onSlideUpdate(index.current)
     },
     {
       axis: 'x',

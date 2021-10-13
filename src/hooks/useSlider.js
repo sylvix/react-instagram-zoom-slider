@@ -71,9 +71,11 @@ export default function useSlider({ initialSlide, slides, onSlideUpdate, width =
           x: -index.current * width + (down ? xMovement : 0),
           immediate: false,
         });
+        onSlideUpdate(index.current)
       } else if (swipeX !== 0) {
         // We have detected a swipe - update the new index
         index.current = clamp(index.current - swipeX, 0, slides.length - 1)
+        onSlideUpdate(index.current)
       }
 
       // Animate the transition
@@ -84,7 +86,6 @@ export default function useSlider({ initialSlide, slides, onSlideUpdate, width =
 
       // Update the slide number for display purposes
       updateSlide(index.current)
-      onSlideUpdate(index.current)
     },
     {
       axis: 'x',
